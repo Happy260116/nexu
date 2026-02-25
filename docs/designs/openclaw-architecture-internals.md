@@ -490,17 +490,26 @@ Gateway 内部：
 | `"restart"` | 任何变更都重启 gateway |
 | `"hybrid"`（默认） | 尽量热加载，无法热加载的才重启 |
 
-### 热加载 vs 需要重启
+### Reload Rule 分类（源码 `config-reload.ts`）
 
-| 配置路径 | 处理方式 |
-|----------|---------|
-| `channels.*` | **热加载** — 重启对应 channel 的 monitor |
-| `bindings` | **热加载** — 路由表内存更新 |
-| `hooks` | **热加载** — 重新加载 hooks |
-| `agents` | 需要重启 |
-| `gateway` | 需要重启 |
-| `plugins` | 需要重启 |
-| `models` | 需要重启 |
+openclaw 对每个配置路径定义了 reload rule，分为三种 `kind`：
+
+| kind | 含义 |
+|------|------|
+| `"none"` | 新 config 加载到内存即可生效，无需额外操作 |
+| `"hot"` | 需要执行特定热加载动作（如重启 channel monitor），不重启 gateway |
+| `"restart"` | 需要重启整个 gateway 进程 |
+
+| 配置路径 | reload kind | 效果 |
+|----------|------------|------|
+| `channels.*` | `hot` | 重启对应 channel 的 monitor |
+| `hooks` | `hot` | 重新加载 hooks |
+| `agents` | `none` | **新 config 直接生效，新 agent 立即可路由** |
+| `bindings` | `none` | **路由表内存更新，立即生效** |
+| `models` | `none` | **直接生效** |
+| `tools` | `none` | **直接生效** |
+| `gateway` | `restart` | 需要重启 |
+| `plugins` | `restart` | 需要重启 |
 
 ### 多租户场景的意义
 
@@ -510,12 +519,12 @@ Gateway 内部：
   → 写入文件（原子写：写 temp 文件再 rename）
   → chokidar 检测到变更（300ms 防抖）
   → Gateway 热加载
-    - channels 新增 account → 启动新 monitor
-    - bindings 新增条目 → 路由表更新
-    - agents 新增条目 → 需要 hybrid 模式下重启
+    - agents 新增条目 → 新 config 加载到内存，新 agent ID 立即可用于路由（kind: "none"）
+    - bindings 新增条目 → 路由表内存更新（kind: "none"）
+    - channels 新增 account → 启动新 monitor（kind: "hot"）
 ```
 
-**注意**：新增 Agent 需要重启。但 channel 和 binding 变更可以热加载。这意味着如果 Agent 已存在，只是修改其 channel 绑定，可以做到零中断。
+**关键结论**：新增 Agent、Binding、Channel 均可热加载，**整个过程零中断，不需要重启 gateway**。只有 `gateway` 和 `plugins` 配置变更才需要重启，而这些在多租户场景中不会变更。
 
 ---
 

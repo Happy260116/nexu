@@ -5,7 +5,7 @@ import type {
   SlackAccountConfig,
 } from "@nexu/shared";
 import { openclawConfigSchema } from "@nexu/shared";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db/index.js";
 import {
   botChannels,
@@ -168,5 +168,12 @@ export async function generatePoolConfig(
   }
 
   const validated = openclawConfigSchema.parse(config);
+
+  // Increment config version for this pool
+  db.update(gatewayPools)
+    .set({ configVersion: sql`${gatewayPools.configVersion} + 1` })
+    .where(eq(gatewayPools.id, poolId))
+    .run();
+
   return validated;
 }

@@ -152,6 +152,26 @@ export function registerChannelRoutes(app: OpenAPIHono<AppBindings>) {
 
     const accountId = `slack-${input.teamId}`;
 
+    // Global check: one Slack workspace can only be linked to one bot (across all users)
+    const globalExisting = db
+      .select()
+      .from(webhookRoutes)
+      .where(
+        and(
+          eq(webhookRoutes.channelType, "slack"),
+          eq(webhookRoutes.externalId, input.teamId),
+        ),
+      )
+      .get();
+
+    if (globalExisting) {
+      return c.json(
+        { message: "This Slack workspace is already connected to another bot" },
+        409,
+      );
+    }
+
+    // Per-bot check: same bot can't connect the same workspace twice
     const existing = db
       .select()
       .from(botChannels)
