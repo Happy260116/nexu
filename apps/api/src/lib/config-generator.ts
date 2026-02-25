@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import type {
   AgentConfig,
   BindingConfig,
@@ -6,6 +5,7 @@ import type {
   SlackAccountConfig,
 } from "@nexu/shared";
 import { openclawConfigSchema } from "@nexu/shared";
+import { eq } from "drizzle-orm";
 import type { Database } from "../db/index.js";
 import {
   botChannels,

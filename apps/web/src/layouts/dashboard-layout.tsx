@@ -1,6 +1,6 @@
-import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
-import { Layout, Menu, Button, Spin, Typography } from "antd";
-import { RobotOutlined, LogoutOutlined } from "@ant-design/icons";
+import { LogoutOutlined, RobotOutlined } from "@ant-design/icons";
+import { Button, Layout, Menu, Spin, Typography } from "antd";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { authClient } from "../lib/auth-client";
 
 const { Header, Content } = Layout;
@@ -11,7 +11,14 @@ export function DashboardLayout() {
 
   if (isPending) {
     return (
-      <Layout style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Layout
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Spin size="large" />
       </Layout>
     );
@@ -28,7 +35,13 @@ export function DashboardLayout() {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Header style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <Header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
           <Typography.Title level={4} style={{ color: "white", margin: 0 }}>
             Nexu
@@ -36,7 +49,9 @@ export function DashboardLayout() {
           <Menu
             theme="dark"
             mode="horizontal"
-            selectedKeys={[location.pathname.startsWith("/bots") ? "/bots" : ""]}
+            selectedKeys={[
+              location.pathname.startsWith("/bots") ? "/bots" : "",
+            ]}
             items={[
               {
                 key: "/bots",

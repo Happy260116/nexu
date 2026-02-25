@@ -1,9 +1,19 @@
+import { PlusOutlined, RobotOutlined } from "@ant-design/icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Space,
+  Table,
+  Tag,
+  Typography,
+  message,
+} from "antd";
+import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Table, Button, Modal, Form, Input, Typography, Tag, Space, message } from "antd";
-import { PlusOutlined, RobotOutlined } from "@ant-design/icons";
-import type { ColumnsType } from "antd/es/table";
 import { api } from "../lib/api-client";
 import type { Bot } from "../lib/api-client";
 
@@ -18,8 +28,12 @@ export function BotListPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (values: { name: string; slug: string; systemPrompt?: string; modelId?: string }) =>
-      api.bots.create(values),
+    mutationFn: (values: {
+      name: string;
+      slug: string;
+      systemPrompt?: string;
+      modelId?: string;
+    }) => api.bots.create(values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bots"] });
       setCreateOpen(false);
@@ -101,7 +115,13 @@ export function BotListPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
         <Typography.Title level={3}>Bots</Typography.Title>
         <Button
           type="primary"
@@ -144,7 +164,10 @@ export function BotListPage() {
             label="Slug"
             rules={[
               { required: true, message: "Please enter a slug" },
-              { pattern: /^[a-z0-9-]+$/, message: "Lowercase letters, numbers and hyphens only" },
+              {
+                pattern: /^[a-z0-9-]+$/,
+                message: "Lowercase letters, numbers and hyphens only",
+              },
             ]}
           >
             <Input placeholder="my-bot" />
@@ -153,7 +176,10 @@ export function BotListPage() {
             <Input placeholder="gpt-4o" />
           </Form.Item>
           <Form.Item name="systemPrompt" label="System Prompt">
-            <Input.TextArea rows={3} placeholder="You are a helpful assistant..." />
+            <Input.TextArea
+              rows={3}
+              placeholder="You are a helpful assistant..."
+            />
           </Form.Item>
         </Form>
       </Modal>

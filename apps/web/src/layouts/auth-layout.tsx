@@ -1,5 +1,5 @@
-import { Outlet, Navigate } from "react-router-dom";
 import { Layout, Spin } from "antd";
+import { Navigate, Outlet } from "react-router-dom";
 import { authClient } from "../lib/auth-client";
 
 export function AuthLayout() {
@@ -7,7 +7,14 @@ export function AuthLayout() {
 
   if (isPending) {
     return (
-      <Layout style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Layout
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Spin size="large" />
       </Layout>
     );
@@ -18,7 +25,14 @@ export function AuthLayout() {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+    <Layout
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <div style={{ width: 400, padding: 24 }}>
         <Outlet />
       </div>

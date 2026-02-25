@@ -1,9 +1,6 @@
 const API_BASE = "/v1";
 
-async function apiRequest<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T> {
+async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     headers: {
@@ -49,12 +46,20 @@ export const api = {
   bots: {
     list: () => apiRequest<{ bots: Bot[] }>("/bots"),
     get: (botId: string) => apiRequest<Bot>(`/bots/${botId}`),
-    create: (data: { name: string; slug: string; systemPrompt?: string; modelId?: string }) =>
+    create: (data: {
+      name: string;
+      slug: string;
+      systemPrompt?: string;
+      modelId?: string;
+    }) =>
       apiRequest<Bot>("/bots", {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    update: (botId: string, data: { name?: string; systemPrompt?: string; modelId?: string }) =>
+    update: (
+      botId: string,
+      data: { name?: string; systemPrompt?: string; modelId?: string },
+    ) =>
       apiRequest<Bot>(`/bots/${botId}`, {
         method: "PATCH",
         body: JSON.stringify(data),
@@ -77,7 +82,12 @@ export const api = {
       apiRequest<{ channels: Channel[] }>(`/bots/${botId}/channels`),
     connectSlack: (
       botId: string,
-      data: { botToken: string; signingSecret: string; teamId: string; teamName?: string },
+      data: {
+        botToken: string;
+        signingSecret: string;
+        teamId: string;
+        teamName?: string;
+      },
     ) =>
       apiRequest<Channel>(`/bots/${botId}/channels/slack/connect`, {
         method: "POST",

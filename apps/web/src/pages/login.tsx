@@ -1,7 +1,7 @@
+import { LockOutlined, MailOutlined } from "@ant-design/icons";
+import { Button, Card, Form, Input, Typography, message } from "antd";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Card, Form, Input, Button, Typography, message } from "antd";
-import { MailOutlined, LockOutlined } from "@ant-design/icons";
 import { authClient } from "../lib/auth-client";
 
 export function LoginPage() {
@@ -43,10 +43,20 @@ export function LoginPage() {
           name="password"
           rules={[{ required: true, message: "Please enter your password" }]}
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Password"
+            size="large"
+          />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" block size="large" loading={loading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            size="large"
+            loading={loading}
+          >
             Login
           </Button>
         </Form.Item>

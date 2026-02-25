@@ -1,14 +1,18 @@
+import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Card, Form, Input, Typography, message } from "antd";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Card, Form, Input, Button, Typography, message } from "antd";
-import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import { authClient } from "../lib/auth-client";
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: { name: string; email: string; password: string }) => {
+  const onFinish = async (values: {
+    name: string;
+    email: string;
+    password: string;
+  }) => {
     setLoading(true);
     try {
       const result = await authClient.signUp.email({
@@ -54,10 +58,20 @@ export function RegisterPage() {
             { min: 8, message: "Password must be at least 8 characters" },
           ]}
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Password"
+            size="large"
+          />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" block size="large" loading={loading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            size="large"
+            loading={loading}
+          >
             Register
           </Button>
         </Form.Item>

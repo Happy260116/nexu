@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { openclawConfigSchema } from "@nexu/shared";
 import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { beforeEach, describe, expect, it } from "vitest";
 import * as schema from "../../db/schema/index.js";
 import { generatePoolConfig } from "../config-generator.js";
 import { encrypt } from "../crypto.js";
-import { openclawConfigSchema } from "@nexu/shared";
 
 process.env.ENCRYPTION_KEY =
   "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -211,9 +211,9 @@ describe("Config Generator", () => {
   });
 
   it("should throw error for non-existent pool", async () => {
-    await expect(
-      generatePoolConfig(db, "non-existent"),
-    ).rejects.toThrow("Pool non-existent not found");
+    await expect(generatePoolConfig(db, "non-existent")).rejects.toThrow(
+      "Pool non-existent not found",
+    );
   });
 
   it("should generate empty config for pool with no bots", async () => {
@@ -249,28 +249,34 @@ describe("Config Generator", () => {
 
     const agent1 = config.agents.list[0];
     expect(agent1).toBeDefined();
-    expect(agent1!.id).toBe("acme-bot");
-    expect(agent1!.name).toBe("Acme Bot");
-    expect(agent1!.default).toBe(true);
+    expect(agent1?.id).toBe("acme-bot");
+    expect(agent1?.name).toBe("Acme Bot");
+    expect(agent1?.default).toBe(true);
 
     const agent2 = config.agents.list[1];
     expect(agent2).toBeDefined();
-    expect(agent2!.id).toBe("globex-bot");
-    expect(agent2!.name).toBe("Globex Bot");
-    expect(agent2!.default).toBeUndefined();
-    expect(agent2!.model).toEqual({ primary: "claude-sonnet-4-20250514" });
+    expect(agent2?.id).toBe("globex-bot");
+    expect(agent2?.name).toBe("Globex Bot");
+    expect(agent2?.default).toBeUndefined();
+    expect(agent2?.model).toEqual({ primary: "claude-sonnet-4-20250514" });
 
     expect(config.channels.slack).toBeDefined();
-    const slackAccounts = config.channels.slack!.accounts;
+    const slack = config.channels.slack;
+    if (!slack) throw new Error("slack should be defined");
+    const slackAccounts = slack.accounts;
 
     expect(slackAccounts["slack-T123"]).toBeDefined();
-    expect(slackAccounts["slack-T123"]!.botToken).toBe("xoxb-acme-token-123");
-    expect(slackAccounts["slack-T123"]!.signingSecret).toBe("acme-signing-secret");
-    expect(slackAccounts["slack-T123"]!.mode).toBe("http");
-    expect(slackAccounts["slack-T123"]!.webhookPath).toBe("/slack/events/slack-T123");
+    expect(slackAccounts["slack-T123"]?.botToken).toBe("xoxb-acme-token-123");
+    expect(slackAccounts["slack-T123"]?.signingSecret).toBe(
+      "acme-signing-secret",
+    );
+    expect(slackAccounts["slack-T123"]?.mode).toBe("http");
+    expect(slackAccounts["slack-T123"]?.webhookPath).toBe(
+      "/slack/events/slack-T123",
+    );
 
     expect(slackAccounts["slack-T456"]).toBeDefined();
-    expect(slackAccounts["slack-T456"]!.botToken).toBe("xoxb-globex-token-456");
+    expect(slackAccounts["slack-T456"]?.botToken).toBe("xoxb-globex-token-456");
 
     expect(config.bindings).toHaveLength(2);
     expect(config.bindings[0]).toEqual({
@@ -290,21 +296,21 @@ describe("Config Generator", () => {
     seedData(db);
     const config = await generatePoolConfig(db, "pool-1");
 
-    const slackAccounts = config.channels.slack!.accounts;
+    const slack = config.channels.slack;
+    if (!slack) throw new Error("slack should be defined");
+    const slackAccounts = slack.accounts;
     expect(slackAccounts["slack-T123"]).toBeDefined();
-    expect(slackAccounts["T123"]).toBeUndefined();
+    expect(slackAccounts.T123).toBeUndefined();
 
     const binding = config.bindings.find((b) => b.agentId === "acme-bot");
     expect(binding).toBeDefined();
-    expect(binding!.match.accountId).toBe("slack-T123");
+    expect(binding?.match.accountId).toBe("slack-T123");
   });
 
   it("should only include active bots", async () => {
     seedData(db);
 
-    db.update(schema.bots)
-      .set({ status: "paused" })
-      .run();
+    db.update(schema.bots).set({ status: "paused" }).run();
 
     db.update(schema.bots)
       .set({ status: "active" })
@@ -314,7 +320,7 @@ describe("Config Generator", () => {
     const config = await generatePoolConfig(db, "pool-1");
 
     expect(config.agents.list).toHaveLength(1);
-    expect(config.agents.list[0]!.id).toBe("acme-bot");
+    expect(config.agents.list[0]?.id).toBe("acme-bot");
   });
 
   it("should only include connected channels", async () => {
@@ -328,7 +334,7 @@ describe("Config Generator", () => {
     const config = await generatePoolConfig(db, "pool-1");
 
     expect(config.bindings).toHaveLength(1);
-    expect(config.bindings[0]!.agentId).toBe("acme-bot");
+    expect(config.bindings[0]?.agentId).toBe("acme-bot");
   });
 
   it("should have only one default agent", async () => {

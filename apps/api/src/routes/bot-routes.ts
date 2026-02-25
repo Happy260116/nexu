@@ -1,21 +1,17 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { OpenAPIHono } from "@hono/zod-openapi";
-import { createId } from "@paralleldrive/cuid2";
-import { eq, and } from "drizzle-orm";
+import type { OpenAPIHono } from "@hono/zod-openapi";
 import {
+  botListResponseSchema,
+  botResponseSchema,
   createBotSchema,
   updateBotSchema,
-  botResponseSchema,
-  botListResponseSchema,
 } from "@nexu/shared";
+import { createId } from "@paralleldrive/cuid2";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { bots, gatewayPools } from "../db/schema/index.js";
 
-type AppBindings = {
-  Variables: {
-    userId: string;
-  };
-};
+import type { AppBindings } from "../types.js";
 
 const errorResponseSchema = z.object({
   message: z.string(),

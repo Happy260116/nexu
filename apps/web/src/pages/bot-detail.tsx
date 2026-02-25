@@ -1,34 +1,34 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Card,
-  Button,
-  Typography,
-  Tag,
-  Descriptions,
-  Space,
-  Tabs,
-  Modal,
-  Form,
-  Input,
-  Table,
-  message,
-  Spin,
-} from "antd";
-import {
-  PauseOutlined,
   CaretRightOutlined,
-  SlackOutlined,
   CodeOutlined,
   DisconnectOutlined,
+  PauseOutlined,
+  SlackOutlined,
 } from "@ant-design/icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Button,
+  Card,
+  Descriptions,
+  Form,
+  Input,
+  Modal,
+  Space,
+  Spin,
+  Table,
+  Tabs,
+  Tag,
+  Typography,
+  message,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api-client";
 import type { Channel } from "../lib/api-client";
 
 export function BotDetailPage() {
-  const { botId } = useParams<{ botId: string }>();
+  const { botId = "" } = useParams<{ botId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [slackModalOpen, setSlackModalOpen] = useState(false);
@@ -38,18 +38,18 @@ export function BotDetailPage() {
 
   const { data: bot, isLoading: botLoading } = useQuery({
     queryKey: ["bot", botId],
-    queryFn: () => api.bots.get(botId!),
-    enabled: !!botId,
+    queryFn: () => api.bots.get(botId),
+    enabled: botId.length > 0,
   });
 
   const { data: channelsData, isLoading: channelsLoading } = useQuery({
     queryKey: ["channels", botId],
-    queryFn: () => api.channels.list(botId!),
-    enabled: !!botId,
+    queryFn: () => api.channels.list(botId),
+    enabled: botId.length > 0,
   });
 
   const pauseMutation = useMutation({
-    mutationFn: () => api.bots.pause(botId!),
+    mutationFn: () => api.bots.pause(botId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bot", botId] });
       message.success("Bot paused");
@@ -57,7 +57,7 @@ export function BotDetailPage() {
   });
 
   const resumeMutation = useMutation({
-    mutationFn: () => api.bots.resume(botId!),
+    mutationFn: () => api.bots.resume(botId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bot", botId] });
       message.success("Bot resumed");
@@ -65,8 +65,12 @@ export function BotDetailPage() {
   });
 
   const connectSlackMutation = useMutation({
-    mutationFn: (values: { botToken: string; signingSecret: string; teamId: string; teamName?: string }) =>
-      api.channels.connectSlack(botId!, values),
+    mutationFn: (values: {
+      botToken: string;
+      signingSecret: string;
+      teamId: string;
+      teamName?: string;
+    }) => api.channels.connectSlack(botId, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["channels", botId] });
       setSlackModalOpen(false);
@@ -79,7 +83,8 @@ export function BotDetailPage() {
   });
 
   const disconnectMutation = useMutation({
-    mutationFn: (channelId: string) => api.channels.disconnect(botId!, channelId),
+    mutationFn: (channelId: string) =>
+      api.channels.disconnect(botId, channelId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["channels", botId] });
       message.success("Channel disconnected");
@@ -99,7 +104,9 @@ export function BotDetailPage() {
   };
 
   if (botLoading) {
-    return <Spin size="large" style={{ display: "block", margin: "100px auto" }} />;
+    return (
+      <Spin size="large" style={{ display: "block", margin: "100px auto" }} />
+    );
   }
 
   if (!bot) {
@@ -167,19 +174,35 @@ export function BotDetailPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
         <Typography.Title level={3}>{bot.name}</Typography.Title>
         <Space>
           {bot.status === "active" ? (
-            <Button icon={<PauseOutlined />} onClick={() => pauseMutation.mutate()}>
+            <Button
+              icon={<PauseOutlined />}
+              onClick={() => pauseMutation.mutate()}
+            >
               Pause
             </Button>
           ) : (
-            <Button icon={<CaretRightOutlined />} onClick={() => resumeMutation.mutate()}>
+            <Button
+              icon={<CaretRightOutlined />}
+              onClick={() => resumeMutation.mutate()}
+            >
               Resume
             </Button>
           )}
-          <Button icon={<CodeOutlined />} onClick={handlePreviewConfig} loading={configLoading}>
+          <Button
+            icon={<CodeOutlined />}
+            onClick={handlePreviewConfig}
+            loading={configLoading}
+          >
             Preview Config
           </Button>
         </Space>
@@ -205,7 +228,9 @@ export function BotDetailPage() {
                       {bot.status}
                     </Tag>
                   </Descriptions.Item>
-                  <Descriptions.Item label="Model">{bot.modelId}</Descriptions.Item>
+                  <Descriptions.Item label="Model">
+                    {bot.modelId}
+                  </Descriptions.Item>
                   <Descriptions.Item label="System Prompt" span={2}>
                     {bot.systemPrompt ?? <em>None</em>}
                   </Descriptions.Item>

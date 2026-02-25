@@ -1,11 +1,11 @@
-import { Routes, Route, Navigate } from "react-router-dom";
 import { ConfigProvider, theme } from "antd";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthLayout } from "./layouts/auth-layout";
 import { DashboardLayout } from "./layouts/dashboard-layout";
+import { BotDetailPage } from "./pages/bot-detail";
+import { BotListPage } from "./pages/bot-list";
 import { LoginPage } from "./pages/login";
 import { RegisterPage } from "./pages/register";
-import { BotListPage } from "./pages/bot-list";
-import { BotDetailPage } from "./pages/bot-detail";
 
 export function App() {
   return (

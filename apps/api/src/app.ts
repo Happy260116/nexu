@@ -1,18 +1,13 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { authMiddleware } from "./middleware/auth.js";
 import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerBotRoutes } from "./routes/bot-routes.js";
 import { registerChannelRoutes } from "./routes/channel-routes.js";
 import { registerPoolRoutes } from "./routes/pool-routes.js";
-import { authMiddleware } from "./middleware/auth.js";
 
-type AppBindings = {
-  Variables: {
-    userId: string;
-    session: unknown;
-  };
-};
+import type { AppBindings } from "./types.js";
 
 export function createApp() {
   const app = new OpenAPIHono<AppBindings>();
