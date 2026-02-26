@@ -184,26 +184,15 @@ Bot 需要 Gateway 才能实际回复消息。两种方式：
 最简单 — 不需要克隆 OpenClaw 仓库：
 
 ```bash
-docker compose up gateway -d
-```
-
-> **注意：** dev 模式下 `pod_ip` 是 `127.0.0.1`，但 Docker 容器内的 Gateway 无法通过 `127.0.0.1` 访问宿主机的 API。需要改用宿主机地址。
-
-在 `docker-compose.yml` 中临时覆盖 gateway 的 `NEXU_API_URL`：
-
-```bash
 NEXU_API_URL=http://host.docker.internal:3000 docker compose up gateway -d
 ```
 
-同时确保 pool 的 `pod_ip` 指向 Docker 容器能到达的地址：
+说明：
+- `NEXU_API_URL` 覆盖默认值，让 Docker 容器内的 Gateway 通过 `host.docker.internal` 访问宿主机上的 API
+- `docker-compose.yml` 默认设置 `POD_IP=127.0.0.1`，API 会通过 `127.0.0.1:18789`（端口映射）将事件转发到 Gateway
+- 首次启动需要 build 镜像，加 `--build` 参数：`NEXU_API_URL=http://host.docker.internal:3000 docker compose up gateway -d --build`
 
-```sql
-UPDATE gateway_pools SET pod_ip = 'host.docker.internal' WHERE id = 'pool_local_01';
-```
-
-这样 API 会将 Slack 事件转发到 `http://host.docker.internal:18789/...`，而 Gateway 容器端口已映射到宿主机 18789。
-
-> macOS/Windows 上 `host.docker.internal` 自动可用。Linux 需要 `docker compose up gateway --add-host=host.docker.internal:host-gateway -d` 或使用宿主机实际 IP。
+> macOS/Windows 上 `host.docker.internal` 自动可用。Linux 需加 `--add-host=host.docker.internal:host-gateway` 或使用宿主机实际 IP。
 
 #### Option 2: 源码启动 (适合调试 OpenClaw)
 
@@ -283,6 +272,7 @@ cp apps/api/.env.example apps/api/.env
 Fill in `apps/api/.env` (same as Path A, but `WEB_URL` points to Docker web):
 
 ```env
+# DATABASE_URL 会被 docker-compose.yml 覆盖为 postgres:5432，此处值仅供参考
 DATABASE_URL=postgresql://nexu:nexu@localhost:5433/nexu_dev
 BETTER_AUTH_SECRET=nexu-dev-secret-change-in-production
 BETTER_AUTH_URL=https://<your-tunnel>.trycloudflare.com
@@ -300,8 +290,12 @@ LITELLM_API_KEY=sk-your-key
 ### 6b. Start All Services
 
 ```bash
-docker compose up --build
+POD_IP=gateway docker compose --profile full up --build
 ```
+
+说明：
+- `--profile full` 启动 api 和 web 服务（它们配置了 `profiles: ["full"]`）
+- `POD_IP=gateway` 让 Gateway 注册 Docker DNS 名而非容器内部 IP，使得 Docker 内的 API 可通过 `gateway:18789` 转发事件
 
 This starts:
 
@@ -312,7 +306,7 @@ This starts:
 | web      | 8080      | Web UI (nginx) |
 | gateway  | 18789     | OpenClaw Gateway |
 
-API 启动时自动 seed `pool_local_01` + invite code `NEXU2026`。Gateway 等 API 健康后自动拉取配置并启动。
+API 启动时自动 seed `pool_local_01`（`pod_ip=gateway`）+ invite code `NEXU2026`。Gateway 等 API 健康后自动拉取配置并启动。
 
 ### 7b. Verify
 
@@ -334,7 +328,7 @@ docker compose logs gateway
 2. Register with invite code **NEXU2026**
 3. Create a bot → Connect Slack → Test in Slack
 
-> **代码变更需重新构建：** `docker compose up --build` 重新打镜像。日常开发建议用 [Path A](#path-a-pnpm-dev-recommended-for-development)。
+> **代码变更需重新构建：** `POD_IP=gateway docker compose --profile full up --build` 重新打镜像。日常开发建议用 [Path A](#path-a-pnpm-dev-recommended-for-development)。
 
 ---
 
@@ -346,7 +340,7 @@ If you restarted cloudflared, update these three places:
 2. Slack App → **OAuth & Permissions** → **Redirect URLs**
 3. Slack App → **Event Subscriptions** → **Request URL**
 
-Then restart: `pnpm dev` (Path A) or `docker compose restart api` (Path B).
+Then restart: `pnpm dev` (Path A) or `docker compose --profile full restart api` (Path B).
 
 ### "Add to Slack" button is disabled
 The `bots` table is empty or the bot belongs to a different user. Check with:
@@ -416,6 +410,27 @@ slack: drop message (channel not allowed)
 - Model ID 必须与 LiteLLM 服务器上注册的完全一致
 - 检查：`curl -s $LITELLM_BASE_URL/v1/models -H "Authorization: Bearer $LITELLM_API_KEY"`
 - 常见错误：数据库里的 `model_id` 是旧的或不存在的模型名
+
+### Events arrive but bot doesn't reply (API logs show forwarding error)
+
+API 日志显示 `Failed to forward to gateway` 或 `ECONNREFUSED`：
+
+```
+[slack-events] forwarding to http://172.21.0.3:18789/slack/events/slack-T123
+[slack-events] Failed to forward to gateway: TypeError: fetch failed
+```
+
+**原因：`pod_ip` 是 Docker 容器内部 IP，macOS 宿主机无法访问。**
+
+`gateway-entrypoint.sh` 启动时用 `hostname -i` 注册了容器 IP（如 `172.21.0.3`），macOS 上这个 IP 不可路由。
+
+**修复：**
+```sql
+-- pnpm dev 模式（API 在宿主机，Gateway 端口映射到 127.0.0.1:18789）
+UPDATE gateway_pools SET pod_ip = '127.0.0.1' WHERE id = 'pool_local_01';
+```
+
+防止 Gateway 重启后覆盖：确保 `docker-compose.yml` 中 `POD_IP` 设置正确（默认 `127.0.0.1`）。
 
 ### API 转发时 "Invalid JSON"
 - Hono 框架可能在 middleware 中已消费了 request body

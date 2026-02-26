@@ -30,8 +30,10 @@ At minimum set `ENCRYPTION_KEY`, `BETTER_AUTH_SECRET`, and Slack credentials. Se
 ### 2. Start
 
 ```bash
-docker compose up --build
+POD_IP=gateway docker compose --profile full up --build
 ```
+
+> `--profile full` 启动 api/web 服务。`POD_IP=gateway` 使 Gateway 注册 Docker DNS 名，确保服务间通信正确。
 
 | Service  | Host Port | Description |
 |----------|-----------|-------------|
@@ -71,9 +73,9 @@ docker build -f Dockerfile.gateway -t nexu-gateway .
 - Build arg `VITE_API_URL` bakes the API endpoint at build time
 
 ### Gateway (`Dockerfile.gateway`)
-- Installs `openclaw@latest` from npm
+- Installs pinned `openclaw@{VERSION}` from npm (build arg `OPENCLAW_VERSION`, default `2026.2.25`)
 - `gateway-entrypoint.sh`: fetches config from API with retry, registers pod IP, starts gateway
-- Env vars: `NEXU_API_URL`, `POOL_ID`, `GATEWAY_TOKEN`
+- Env vars: `NEXU_API_URL`, `POOL_ID`, `GATEWAY_TOKEN`, `POD_IP`
 
 ### PostgreSQL
 - `postgres:16-alpine`, credentials `nexu:nexu`, database `nexu_dev`
