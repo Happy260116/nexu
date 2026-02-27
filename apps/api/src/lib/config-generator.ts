@@ -276,6 +276,7 @@ export async function generatePoolConfig(
       enabled: true,
       groupPolicy: "open",
       dmPolicy: "open",
+      allowFrom: ["*"],
       accounts: discordAccounts,
     };
   }
