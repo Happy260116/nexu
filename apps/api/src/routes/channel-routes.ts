@@ -538,6 +538,52 @@ export function registerChannelRoutes(app: OpenAPIHono<AppBindings>) {
     const userId = c.get("userId");
     const input = c.req.valid("json");
 
+    // Validate bot token against Discord API
+    try {
+      const discordResp = await fetch(
+        "https://discord.com/api/v10/users/@me",
+        { headers: { Authorization: `Bot ${input.botToken}` } },
+      );
+      if (!discordResp.ok) {
+        const status = discordResp.status;
+        return c.json(
+          {
+            message:
+              status === 401
+                ? "Invalid bot token"
+                : `Discord API error (${status})`,
+          },
+          409,
+        );
+      }
+    } catch {
+      return c.json(
+        { message: "Failed to reach Discord API to validate bot token" },
+        409,
+      );
+    }
+
+    // Validate that the provided Application ID matches the bot's actual application
+    try {
+      const appResp = await fetch(
+        "https://discord.com/api/v10/applications/@me",
+        { headers: { Authorization: `Bot ${input.botToken}` } },
+      );
+      if (appResp.ok) {
+        const appData = (await appResp.json()) as { id: string };
+        if (appData.id !== input.appId) {
+          return c.json(
+            {
+              message: `Application ID mismatch: the bot token belongs to application ${appData.id}, but you entered ${input.appId}`,
+            },
+            409,
+          );
+        }
+      }
+    } catch {
+      // Non-fatal: skip app ID validation if the endpoint is unavailable
+    }
+
     const bot = await findOrCreateDefaultBot(userId);
     const botId = bot.id;
 

@@ -251,6 +251,7 @@ export type GetV1MeResponses = {
         image?: string;
         plan: string;
         inviteAccepted: boolean;
+        onboardingCompleted: boolean;
     };
 };
 

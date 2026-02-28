@@ -259,6 +259,19 @@ export async function migrate(dbUrl?: string) {
     CREATE UNIQUE INDEX IF NOT EXISTS webhook_routes_uniq_idx ON webhook_routes(channel_type, external_id);
   `);
 
+  // Onboarding fields
+  await client.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_role TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_company TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_use_cases TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_referral_source TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_referral_detail TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_channel_votes TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_avatar TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_avatar_votes TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed_at TEXT;
+  `);
+
   console.log("Database migrated successfully");
   await client.end();
 }

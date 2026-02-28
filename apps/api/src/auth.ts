@@ -22,6 +22,12 @@ const options: BetterAuthOptions = {
     },
   },
   trustedOrigins: [process.env.WEB_URL ?? "http://localhost:5173"],
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"],
+    },
+  },
 };
 
 export const auth = betterAuth(options);

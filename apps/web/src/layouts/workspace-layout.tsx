@@ -45,12 +45,12 @@ function formatTime(iso: string | null): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "刚刚";
-  if (diffMin < 60) return `${diffMin} 分钟前`;
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} 小时前`;
+  if (diffHr < 24) return `${diffHr}h ago`;
   const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 7) return `${diffDay} 天前`;
+  if (diffDay < 7) return `${diffDay}d ago`;
   return d.toLocaleDateString();
 }
 
@@ -62,11 +62,11 @@ function EmptyState({ onGoConfig }: { onGoConfig: () => void }) {
           <MessageSquare size={28} className="text-accent" />
         </div>
         <h2 className="mb-2 text-xl font-bold text-text-primary">
-          还没有对话
+          No conversations yet
         </h2>
         <p className="mb-6 text-sm leading-relaxed text-text-muted">
-          先配置好平台 Bot，然后在 Slack / Discord / 飞书 里 @Nexu
-          或私聊龙虾 🦞，对话就会自动出现在这里。
+          Set up a platform bot first, then mention @Nexu or DM the lobster 🦞
+          in Slack / Discord / WhatsApp — conversations will appear here automatically.
         </p>
         <div className="flex flex-col gap-3 items-center">
           <button
@@ -74,13 +74,13 @@ function EmptyState({ onGoConfig }: { onGoConfig: () => void }) {
             onClick={onGoConfig}
             className="flex gap-2 items-center px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors bg-accent hover:bg-accent-hover"
           >
-            <Settings size={14} /> 去配置 Bot
+            <Settings size={14} /> Set up Bot
           </button>
           <div className="flex gap-4 mt-2">
             {[
-              { step: "1", text: "配置平台 Bot" },
-              { step: "2", text: "在 IM 里 @Nexu" },
-              { step: "3", text: "对话自动出现" },
+              { step: "1", text: "Connect a platform" },
+              { step: "2", text: "Mention @Nexu" },
+              { step: "3", text: "Conversations appear" },
             ].map((s, i) => (
               <div
                 key={s.step}
@@ -180,7 +180,7 @@ export function WorkspaceLayout() {
                 type="button"
                 onClick={() => setCollapsed(false)}
                 className="absolute inset-0 flex justify-center items-center w-7 h-7 rounded-lg opacity-0 transition-opacity bg-surface-3 text-text-primary group-hover:opacity-100"
-                title="展开侧边栏"
+                title="Expand sidebar"
               >
                 <PanelLeftOpen size={14} />
               </button>
@@ -195,14 +195,14 @@ export function WorkspaceLayout() {
                   Nexu <span className="text-[11px]">🦞</span>
                 </div>
                 <div className="text-[10px] text-text-tertiary">
-                  你的赛博办公室
+                  Your digital coworker
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setCollapsed(true)}
                 className="p-1.5 rounded-lg transition-colors text-text-muted hover:text-text-primary hover:bg-surface-3 shrink-0"
-                title="收起侧边栏"
+                title="Collapse sidebar"
               >
                 <PanelLeftClose size={14} />
               </button>
@@ -215,7 +215,7 @@ export function WorkspaceLayout() {
           {!collapsed && (
             <div className="px-3 pt-3 mb-2">
               <div className="text-[10px] font-medium text-text-muted uppercase tracking-wider px-1">
-                对话 ({sessions.length})
+                Conversations ({sessions.length})
               </div>
             </div>
           )}
@@ -287,14 +287,14 @@ export function WorkspaceLayout() {
                 <Zap size={14} className="text-accent" />
               </div>
               <p className="text-[12px] text-text-muted leading-relaxed">
-                配置好 Bot 后，在 IM 里跟 🦞 对话就会出现在这里
+                Once your bot is set up, conversations with 🦞 will appear here
               </p>
               <button
                 type="button"
                 onClick={() => navigate("/workspace/channels")}
                 className="mt-3 text-[12px] text-accent font-medium hover:underline"
               >
-                去配置 →
+                Set up →
               </button>
             </div>
           ) : null}
@@ -304,7 +304,7 @@ export function WorkspaceLayout() {
             <div className="border-t border-border pt-2" />
             <Link
               to="/workspace/channels"
-              title={collapsed ? "Channel 配置" : undefined}
+              title={collapsed ? "Channels" : undefined}
               className={cn(
                 "flex items-center gap-2 w-full rounded-lg text-[12px] font-medium transition-colors cursor-pointer mt-1",
                 collapsed ? "justify-center p-2" : "px-3 py-2",
@@ -314,7 +314,7 @@ export function WorkspaceLayout() {
               )}
             >
               <Settings size={14} />
-              {!collapsed && "Channel 配置"}
+              {!collapsed && "Channels"}
             </Link>
           </div>
         </div>
@@ -343,7 +343,7 @@ export function WorkspaceLayout() {
                     className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-[12px] font-medium text-text-muted hover:text-red-500 hover:bg-red-500/5 transition-all cursor-pointer"
                   >
                     <LogOut size={13} />
-                    退出登录
+                    Sign out
                   </button>
                 </div>
               </div>

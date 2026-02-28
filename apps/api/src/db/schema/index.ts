@@ -107,6 +107,15 @@ export const users = pgTable("users", {
   authUserId: text("auth_user_id").notNull().unique(),
   plan: text("plan").default("free"),
   inviteAcceptedAt: text("invite_accepted_at"),
+  onboardingRole: text("onboarding_role"),
+  onboardingCompany: text("onboarding_company"),
+  onboardingUseCases: text("onboarding_use_cases"),
+  onboardingReferralSource: text("onboarding_referral_source"),
+  onboardingReferralDetail: text("onboarding_referral_detail"),
+  onboardingChannelVotes: text("onboarding_channel_votes"),
+  onboardingAvatar: text("onboarding_avatar"),
+  onboardingAvatarVotes: text("onboarding_avatar_votes"),
+  onboardingCompletedAt: text("onboarding_completed_at"),
   createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),

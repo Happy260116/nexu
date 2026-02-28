@@ -38,6 +38,7 @@ export function registerUserRoutes(app: OpenAPIHono<AppBindings>) {
         image: session.user.image ?? null,
         plan: appUser?.plan ?? "free",
         inviteAccepted: !!appUser?.inviteAcceptedAt,
+        onboardingCompleted: !!appUser?.onboardingCompletedAt,
       },
       200,
     );

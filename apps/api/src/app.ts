@@ -20,6 +20,7 @@ import {
   registerSessionRoutes,
 } from "./routes/session-routes.js";
 import { registerSlackEvents } from "./routes/slack-events.js";
+import { registerOnboardingRoutes } from "./routes/onboarding-routes.js";
 import { registerUserRoutes } from "./routes/user-routes.js";
 
 import type { AppBindings } from "./types.js";
@@ -45,6 +46,7 @@ export function createApp() {
   app.use("/v1/*", authMiddleware);
 
   registerUserRoutes(app);
+  registerOnboardingRoutes(app);
   registerBotRoutes(app);
   registerChannelRoutes(app);
   registerInviteRoutes(app);

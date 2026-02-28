@@ -54,6 +54,7 @@ interface StepDef {
   title: string;
   desc: string;
   detail?: DetailItem[];
+  detail2?: DetailItem[];
   copyable?: string;
   hasInputs?: boolean;
 }
@@ -62,40 +63,39 @@ const DISCORD_STEPS: StepDef[] = [
   {
     step: 1,
     title: "Create Discord Application",
-    desc: "Go to Discord Developer Portal and create a new application.",
+    desc: "Go to the Discord Developer Portal and create a new application.",
     detail: [
       { text: "Discord Developer Portal", url: "https://discord.com/developers/applications" },
-      '点击「New Application」',
-      "填写 App Name: Nexu",
-      "保存并进入 Bot 页面",
+      'Click "New Application"',
+      "Set the App Name to Nexu",
+      "Save and navigate to the Bot page",
     ],
   },
   {
     step: 2,
-    title: "配置 Bot 权限",
-    desc: "在 Bot 页面开启 Privileged Gateway Intents。",
+    title: "Configure Bot Permissions",
+    desc: "Enable Privileged Gateway Intents on the Bot page.",
     detail: [
-      "进入 Application → Bot",
-      "开启以下 Intents：",
-      "  · MESSAGE CONTENT INTENT — 读取消息内容",
-      "  · SERVER MEMBERS INTENT — 读取成员信息",
+      "Go to Application → Bot",
+      "Enable the following Intents:",
+      "  · MESSAGE CONTENT INTENT — read message content",
+      "  · SERVER MEMBERS INTENT — read member information",
     ],
   },
   {
     step: 3,
-    title: "填入凭证",
-    desc: "将 Discord Application 的 Bot Token 和 Application ID 填入下方。",
+    title: "Enter Credentials",
+    desc: "Enter the Bot Token and Application ID from your Discord Application below.",
     hasInputs: true,
   },
   {
     step: 4,
-    title: "邀请并测试",
-    desc: "用 OAuth2 URL 邀请 Bot 到你的 Server，然后 @Nexu 测试。",
+    title: "Invite & Test",
+    desc: "Add the Bot to your Discord server, then mention @Nexu to test.",
     detail: [
-      "进入 Application → OAuth2 → URL Generator",
-      "勾选 bot scope + Send Messages 权限",
-      "复制链接并在浏览器中打开，选择 Server",
-      '在频道中发送 "@Nexu 你好" 测试',
+      "Click the button below to invite the bot to your server",
+      "Select the server and authorize",
+      'Send "@Nexu hello" in a channel to test',
     ],
   },
 ];
@@ -103,55 +103,60 @@ const DISCORD_STEPS: StepDef[] = [
 const SLACK_STEPS: StepDef[] = [
   {
     step: 1,
-    title: "创建 Slack App",
-    desc: "前往 Slack API，创建一个新的 App。",
+    title: "Create Slack App",
+    desc: "Go to the Slack API dashboard and create a new App.",
     detail: [
       { text: "Slack API Dashboard", url: "https://api.slack.com/apps" },
-      '点击「Create New App」',
-      '选择「From scratch」',
-      "填写 App Name: Nexu",
-      "选择要安装到的 Workspace",
+      'Click "Create New App"',
+      'Select "From scratch"',
+      "Set the App Name to Nexu",
+      "Choose the workspace to install it to",
     ],
   },
   {
     step: 2,
-    title: "配置 Bot 权限",
-    desc: "在 OAuth & Permissions 中添加 Bot Token Scopes。",
+    title: "Configure Bot Permissions",
+    desc: "Add Bot Token Scopes under OAuth & Permissions.",
     detail: [
-      "进入 App → OAuth & Permissions",
-      "在 Bot Token Scopes 中添加：",
-      "  · chat:write — 发送消息",
-      "  · app_mentions:read — 接收 @ 消息",
-      "  · files:read — 读取上传的文件",
-      "  · channels:history — 读取频道消息",
+      "Go to App → OAuth & Permissions",
+      "Scroll down to \"Bot Token Scopes\"",
+      "Add the following scopes:",
+      "  · chat:write — send messages",
+      "  · app_mentions:read — receive @mentions",
+      "  · files:read — read uploaded files",
+      "  · channels:history — read channel messages",
     ],
   },
   {
     step: 3,
-    title: "配置事件订阅",
-    desc: "设置 Request URL，让 Slack 将事件转发给 Nexu。",
+    title: "Install & Connect",
+    desc: "Install the App to your workspace, then paste the credentials below.",
     detail: [
-      "进入 App → Event Subscriptions",
-      "开启 Enable Events",
-      "Request URL 填写以下地址：",
+      "Go to App → Install App",
+      'Click "Install to Workspace" and authorize',
+      "After install, go to App → OAuth & Permissions → copy the \"Bot User OAuth Token\" (starts with xoxb-)",
+      "Then go to App → Basic Information → App Credentials → copy the \"Signing Secret\"",
+      "Paste both values below:",
     ],
-    copyable: "/api/slack/events",
-  },
-  {
-    step: 4,
-    title: "填入凭证",
-    desc: "将 Slack App 的 Bot Token 和 Signing Secret 填入下方。",
     hasInputs: true,
   },
   {
-    step: 5,
-    title: "安装并测试",
-    desc: "安装 App 到 Workspace，然后在频道里 @Nexu 测试。",
+    step: 4,
+    title: "Configure Events & Test",
+    desc: "Set up Event Subscriptions so Slack forwards messages to Nexu.",
     detail: [
-      "进入 App → Install App",
-      '点击「Install to Workspace」',
-      "在任意频道中输入 /invite @Nexu",
-      '发送 "@Nexu 你好" 测试',
+      "Go to App → Event Subscriptions",
+      "Toggle \"Enable Events\" on",
+      "Enter the following Request URL:",
+    ],
+    copyable: "/api/slack/events",
+    detail2: [
+      "Under \"Subscribe to bot events\", add:",
+      "  · app_mention — when someone @mentions your bot",
+      "  · message.channels — messages in public channels",
+      "Click \"Save Changes\"",
+      "In any Slack channel, type /invite @Nexu",
+      'Send "@Nexu hello" to test',
     ],
   },
 ];
@@ -163,47 +168,47 @@ const WHATSAPP_STEPS: StepDef[] = [
     desc: "Go to Meta for Developers and create a new Business App.",
     detail: [
       { text: "Meta for Developers", url: "https://developers.facebook.com/apps" },
-      '点击「Create App」',
-      "选择 Business 类型",
-      "填写 App Name: Nexu",
+      'Click "Create App"',
+      "Select the Business type",
+      "Set the App Name to Nexu",
     ],
   },
   {
     step: 2,
-    title: "配置 WhatsApp Business API",
-    desc: "在 App Dashboard 中添加 WhatsApp 产品。",
+    title: "Configure WhatsApp Business API",
+    desc: "Add the WhatsApp product in the App Dashboard.",
     detail: [
-      "进入 App → Add Products",
-      '选择「WhatsApp」并点击 Set Up',
-      "绑定 Business Account",
-      "获取测试号码或添加正式号码",
+      "Go to App → Add Products",
+      'Select "WhatsApp" and click Set Up',
+      "Link your Business Account",
+      "Get a test number or add a production number",
     ],
   },
   {
     step: 3,
-    title: "配置 Webhook",
-    desc: "设置 Webhook URL，让 WhatsApp 将消息转发给 Nexu。",
+    title: "Configure Webhook",
+    desc: "Set the Webhook URL so WhatsApp forwards messages to Nexu.",
     detail: [
-      "进入 WhatsApp → Configuration",
-      "Callback URL 填写以下地址：",
+      "Go to WhatsApp → Configuration",
+      "Enter the following Callback URL:",
     ],
     copyable: "/api/whatsapp/webhook",
   },
   {
     step: 4,
-    title: "填入凭证",
-    desc: "将 WhatsApp Business API 的 Access Token 和 Phone Number ID 填入下方。",
+    title: "Enter Credentials",
+    desc: "Enter the Access Token and Phone Number ID from WhatsApp Business API below.",
     hasInputs: true,
   },
   {
     step: 5,
-    title: "发送测试消息",
-    desc: "向测试号码发送消息，验证 Nexu 能正常收发。",
+    title: "Send Test Message",
+    desc: "Send a message to the test number to verify Nexu can send and receive.",
     detail: [
-      "进入 WhatsApp → API Setup",
-      "使用 Test Number 发送一条消息",
-      "在 Nexu 中确认消息已收到",
-      '回复 "hello" 测试双向通信',
+      "Go to WhatsApp → API Setup",
+      "Send a message using the Test Number",
+      "Confirm the message appears in Nexu",
+      'Reply "hello" to test two-way communication',
     ],
   },
 ];
@@ -224,12 +229,12 @@ const CREDENTIAL_FIELDS: Record<
     hint1: "Application → General Information → Application ID",
     label2: "Bot Token",
     placeholder2: "MTxx...",
-    hint2: "Application → Bot → Reset Token，复制生成的 Token",
+    hint2: "Application → Bot → Reset Token, copy the generated token",
   },
   slack: {
     label1: "Bot User OAuth Token",
     placeholder1: "xoxb-xxxxxxxxxxxxx",
-    hint1: "App → OAuth & Permissions → Bot User OAuth Token（以 xoxb- 开头）",
+    hint1: "App → OAuth & Permissions → Bot User OAuth Token (starts with xoxb-)",
     label2: "Signing Secret",
     placeholder2: "xxxxxxxxxxxxxxxxxxxxxxx",
     hint2: "App → Basic Information → App Credentials → Signing Secret",
@@ -276,10 +281,10 @@ export function ChannelsPage() {
       {/* Page header */}
       <div className="mb-6">
         <h1 className="text-lg font-bold text-text-primary">
-          Channel 配置
+          Channels
         </h1>
         <p className="text-[13px] text-text-muted mt-1">
-          连接你的 IM 平台，让 Nexu 🦞 进驻你的工作频道
+          Connect your messaging platforms and let Nexu 🦞 join your workspace
         </p>
       </div>
 
@@ -337,7 +342,7 @@ export function ChannelsPage() {
       {/* Coming soon */}
       <div className="flex gap-1.5 items-center mb-6 text-[11px] text-text-muted">
         <Zap size={10} className="text-accent" />
-        Telegram、Microsoft Teams、Line 等更多平台即将支持
+        Telegram, Microsoft Teams, Line and more coming soon
       </div>
 
       {/* Back button when force-viewing guide for configured platform */}
@@ -347,7 +352,7 @@ export function ChannelsPage() {
           onClick={() => setForceGuide(false)}
           className="flex gap-1.5 items-center mb-5 text-[12px] text-accent font-medium hover:underline underline-offset-2"
         >
-          <ArrowLeft size={13} /> 返回配置
+          <ArrowLeft size={13} /> Back to configuration
         </button>
       )}
 
@@ -456,8 +461,8 @@ function SetupGuideView({
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["channels"] });
       toast.success("Discord connected!");
+      setCurrentStep((prev) => prev + 1);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -475,8 +480,8 @@ function SetupGuideView({
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["channels"] });
       toast.success("Slack connected!");
+      setCurrentStep((prev) => prev + 1);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -511,8 +516,8 @@ function SetupGuideView({
       <div className="w-52 shrink-0">
         <div className="p-4 rounded-xl border bg-surface-1 border-border">
           <div className="text-[11px] text-text-muted font-medium mb-3 flex items-center justify-between">
-            <span>配置步骤</span>
-            <span className="text-accent">约 3 分钟</span>
+            <span>Setup Steps</span>
+            <span className="text-accent">~3 min</span>
           </div>
           <div className="space-y-0.5">
             {steps.map((s, i) => (
@@ -562,7 +567,7 @@ function SetupGuideView({
                 {oauthLoading ? (
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 ) : null}
-                一键 OAuth 安装
+                Install via OAuth
               </Button>
             </div>
           )}
@@ -600,7 +605,7 @@ function SetupGuideView({
                       <span className="flex gap-2.5 items-start">
                         <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent/40 shrink-0" />
                         <span>
-                          打开{" "}
+                          Open{" "}
                           <a
                             href={d.url}
                             target="_blank"
@@ -635,6 +640,19 @@ function SetupGuideView({
             </div>
           )}
 
+          {platform === "discord" && activeStep.step === steps.length && field1.trim() && (
+            <div className="mb-5 ml-12">
+              <a
+                href={`https://discord.com/oauth2/authorize?client_id=${field1}&scope=bot&permissions=68608`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex gap-1.5 items-center px-4 py-2 text-[12px] font-medium text-white rounded-lg bg-[#5865F2] hover:bg-[#4752C4] transition-all"
+              >
+                <ExternalLink size={13} /> Add Bot to Server
+              </a>
+            </div>
+          )}
+
           {activeStep.copyable && (() => {
             const fullUrl = activeStep.copyable!.startsWith("/")
               ? `${window.location.origin}${activeStep.copyable}`
@@ -649,7 +667,7 @@ function SetupGuideView({
                   type="button"
                   onClick={() => handleCopy(fullUrl)}
                   className="p-1.5 rounded-lg transition-all text-text-muted hover:text-text-primary hover:bg-surface-3 shrink-0"
-                  title="复制"
+                  title="Copy"
                 >
                   {copied ? (
                     <Check
@@ -664,6 +682,35 @@ function SetupGuideView({
             </div>
             );
           })()}
+
+          {activeStep.detail2 && (
+            <div className="ml-12 space-y-2 mb-5">
+              {activeStep.detail2.map((d, i) => {
+                if (typeof d === "object") {
+                  return (
+                    <div key={i} className="text-[13px] text-text-secondary leading-relaxed">
+                      <span className="flex gap-2.5 items-start">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent/40 shrink-0" />
+                        <span>Open{" "}<a href={d.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline underline-offset-2">{d.text} ↗</a></span>
+                      </span>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} className="text-[13px] text-text-secondary leading-relaxed">
+                    {d.startsWith("  ") ? (
+                      <span className="ml-4 text-text-muted font-mono text-[12px]">{d.trim()}</span>
+                    ) : (
+                      <span className="flex gap-2.5 items-start">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent/40 shrink-0" />
+                        {d}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {activeStep.hasInputs && (
             <div className="mb-5 ml-12 space-y-3">
@@ -695,21 +742,13 @@ function SetupGuideView({
               disabled={currentStep === 0}
               className="px-4 py-2 text-[12px] font-medium text-text-secondary rounded-lg border border-border hover:border-border-hover hover:bg-surface-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              上一步
+              Previous
             </button>
-            {currentStep < steps.length - 1 ? (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex gap-1 items-center px-5 py-2 text-[12px] font-medium text-white rounded-lg transition-all bg-accent hover:bg-accent-hover"
-              >
-                下一步 <ChevronRight size={13} />
-              </button>
-            ) : (
+            {activeStep.hasInputs ? (
               <button
                 type="button"
                 onClick={handleFinish}
-                disabled={isPending}
+                disabled={isPending || !field1.trim() || !field2.trim()}
                 className="flex gap-1 items-center px-5 py-2 text-[12px] font-medium text-white rounded-lg transition-all bg-accent hover:bg-accent-hover disabled:opacity-60"
               >
                 {isPending ? (
@@ -717,7 +756,24 @@ function SetupGuideView({
                 ) : (
                   <Check size={13} />
                 )}
-                完成配置
+                Connect
+              </button>
+            ) : currentStep < steps.length - 1 ? (
+              <button
+                type="button"
+                onClick={() => setCurrentStep(currentStep + 1)}
+                className="flex gap-1 items-center px-5 py-2 text-[12px] font-medium text-white rounded-lg transition-all bg-accent hover:bg-accent-hover"
+              >
+                Next <ChevronRight size={13} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["channels"] })}
+                className="flex gap-1 items-center px-5 py-2 text-[12px] font-medium text-white rounded-lg transition-all bg-accent hover:bg-accent-hover"
+              >
+                <Check size={13} />
+                Done
               </button>
             )}
           </div>
@@ -728,18 +784,18 @@ function SetupGuideView({
           <AlertCircle size={15} className="text-accent shrink-0" />
           <div className="text-[12px] text-text-muted leading-relaxed">
             <span className="font-medium text-text-secondary">
-              需要帮助？
+              Need help?
             </span>{" "}
-            查看{" "}
+            Check out the{" "}
             <a
               href="https://docs.nexu.dev"
               target="_blank"
               rel="noopener noreferrer"
               className="text-accent hover:underline underline-offset-2"
             >
-              完整文档
+              full documentation
             </a>{" "}
-            或在{" "}
+            or reach us on{" "}
             <a
               href="https://discord.gg/nexu"
               target="_blank"
@@ -747,8 +803,7 @@ function SetupGuideView({
               className="text-accent hover:underline underline-offset-2"
             >
               Discord
-            </a>{" "}
-            里找我们。
+            </a>.
           </div>
         </div>
       </div>
@@ -811,13 +866,13 @@ function ConfiguredView({
         </div>
         <div className="flex-1">
           <div className="text-[13px] font-semibold text-text-primary">
-            {PLATFORM_LABELS[platform]} Bot 已连接
+            {PLATFORM_LABELS[platform]} Bot Connected
           </div>
           <div className="text-[11px] text-text-muted mt-0.5">
             {channel.teamName ?? channel.accountId}
             {channel.createdAt &&
-              ` · 配置于 ${new Date(channel.createdAt).toLocaleDateString()}`}
-            {" · "}连接正常
+              ` · configured ${new Date(channel.createdAt).toLocaleDateString()}`}
+            {" · "}connection active
           </div>
         </div>
         <button
@@ -825,7 +880,7 @@ function ConfiguredView({
           onClick={onShowGuide}
           className="flex gap-1.5 items-center px-3 py-1.5 text-[11px] text-text-muted rounded-lg border border-border hover:border-border-hover hover:text-text-secondary transition-all shrink-0"
         >
-          <BookOpen size={11} /> 配置流程
+          <BookOpen size={11} /> Setup Guide
         </button>
       </div>
 
@@ -837,11 +892,11 @@ function ConfiguredView({
               <ExternalLink size={13} className="text-indigo-500" />
             </div>
             <h3 className="text-[13px] font-semibold text-text-primary">
-              添加到 Server
+              Add to Server
             </h3>
           </div>
           <p className="text-[12px] text-text-muted mb-3 leading-relaxed">
-            使用以下链接将 Bot 邀请到你的 Discord Server。
+            Use the link below to invite the Bot to your Discord server.
           </p>
           <a
             href={discordInviteUrl}
@@ -873,7 +928,7 @@ function ConfiguredView({
               type="button"
               onClick={() => handleCopy(webhookUrl)}
               className="p-1.5 rounded-lg transition-all text-text-muted hover:text-text-primary hover:bg-surface-3 shrink-0"
-              title="复制"
+              title="Copy"
             >
               {copied ? (
                 <Check size={13} className="text-emerald-500" />
@@ -892,7 +947,7 @@ function ConfiguredView({
             <Key size={13} className="text-amber-500" />
           </div>
           <h3 className="text-[13px] font-semibold text-text-primary">
-            凭证信息
+            Credentials
           </h3>
         </div>
         <div className="space-y-3">
@@ -924,12 +979,12 @@ function ConfiguredView({
             <Shield size={13} className="text-red-400" />
           </div>
           <h3 className="text-[13px] font-semibold text-text-primary">
-            重置配置
+            Reset Configuration
           </h3>
         </div>
         <p className="text-[12px] text-text-muted mb-3.5 leading-relaxed">
-          重置将清除当前 {PLATFORM_LABELS[platform]} Bot
-          的所有配置，需要重新完成配置流程。
+          This will remove the current {PLATFORM_LABELS[platform]} Bot
+          configuration. You will need to complete the setup process again.
         </p>
         <button
           type="button"
@@ -942,7 +997,7 @@ function ConfiguredView({
           ) : (
             <RotateCcw size={12} />
           )}
-          重置并重新配置
+          Reset & Reconfigure
         </button>
       </div>
     </div>
@@ -959,10 +1014,10 @@ function WhatsAppQRView() {
           <Smartphone size={22} className="text-emerald-500" />
         </div>
         <h3 className="text-[15px] font-semibold text-text-primary mb-1">
-          WhatsApp 即将支持
+          WhatsApp Coming Soon
         </h3>
         <p className="text-[12px] text-text-muted mb-6 leading-relaxed">
-          WhatsApp Business API 集成正在开发中，敬请期待。
+          WhatsApp Business API integration is under development. Stay tuned.
         </p>
       </div>
 
@@ -970,18 +1025,18 @@ function WhatsAppQRView() {
         <AlertCircle size={15} className="text-accent shrink-0" />
         <div className="text-[12px] text-text-muted leading-relaxed">
           <span className="font-medium text-text-secondary">
-            需要帮助？
+            Need help?
           </span>{" "}
-          查看{" "}
+          Check out the{" "}
           <a
             href="https://docs.nexu.dev"
             target="_blank"
             rel="noopener noreferrer"
             className="text-accent hover:underline underline-offset-2"
           >
-            完整文档
+            full documentation
           </a>{" "}
-          或在{" "}
+          or reach us on{" "}
           <a
             href="https://discord.gg/nexu"
             target="_blank"
@@ -989,8 +1044,7 @@ function WhatsAppQRView() {
             className="text-accent hover:underline underline-offset-2"
           >
             Discord
-          </a>{" "}
-          里找我们。
+          </a>.
         </div>
       </div>
     </div>

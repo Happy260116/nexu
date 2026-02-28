@@ -39,7 +39,7 @@ export function InvitePage() {
     onSuccess: (data) => {
       if (data?.valid) {
         toast.success("Invite code accepted!");
-        navigate("/workspace");
+        navigate("/onboarding");
       } else {
         toast.error(data?.message ?? "Invalid invite code");
       }
@@ -58,6 +58,9 @@ export function InvitePage() {
   }
 
   if (profile?.inviteAccepted) {
+    if (!profile.onboardingCompleted) {
+      return <Navigate to="/onboarding" replace />;
+    }
     return <Navigate to="/workspace" replace />;
   }
 
