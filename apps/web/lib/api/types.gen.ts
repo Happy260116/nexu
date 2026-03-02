@@ -558,6 +558,24 @@ export type PostApiV1BotsByBotIdResumeResponses = {
 
 export type PostApiV1BotsByBotIdResumeResponse = PostApiV1BotsByBotIdResumeResponses[keyof PostApiV1BotsByBotIdResumeResponses];
 
+export type GetApiV1ChannelsSlackRedirectUriData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/channels/slack/redirect-uri';
+};
+
+export type GetApiV1ChannelsSlackRedirectUriResponses = {
+    /**
+     * The OAuth redirect URI configured on this server
+     */
+    200: {
+        redirectUri: string;
+    };
+};
+
+export type GetApiV1ChannelsSlackRedirectUriResponse = GetApiV1ChannelsSlackRedirectUriResponses[keyof GetApiV1ChannelsSlackRedirectUriResponses];
+
 export type GetApiV1ChannelsSlackOauthUrlData = {
     body?: never;
     path?: never;
@@ -891,6 +909,14 @@ export type GetApiInternalPoolsByPoolIdConfigResponses = {
                 ask?: 'off' | 'on-miss' | 'always';
                 host?: 'sandbox' | 'gateway' | 'node';
             };
+            web?: {
+                search?: {
+                    enabled?: boolean;
+                };
+                fetch?: {
+                    enabled?: boolean;
+                };
+            };
         };
         agents: {
             defaults?: {
@@ -958,6 +984,9 @@ export type GetApiInternalPoolsByPoolIdConfigResponses = {
             nativeSkills?: 'auto' | 'off';
             restart?: boolean;
             ownerDisplay?: 'raw' | 'friendly';
+        };
+        cron?: {
+            enabled?: boolean;
         };
     };
 };
@@ -1091,6 +1120,14 @@ export type GetApiInternalPoolsByPoolIdConfigLatestResponses = {
                     ask?: 'off' | 'on-miss' | 'always';
                     host?: 'sandbox' | 'gateway' | 'node';
                 };
+                web?: {
+                    search?: {
+                        enabled?: boolean;
+                    };
+                    fetch?: {
+                        enabled?: boolean;
+                    };
+                };
             };
             agents: {
                 defaults?: {
@@ -1158,6 +1195,9 @@ export type GetApiInternalPoolsByPoolIdConfigLatestResponses = {
                 nativeSkills?: 'auto' | 'off';
                 restart?: boolean;
                 ownerDisplay?: 'raw' | 'friendly';
+            };
+            cron?: {
+                enabled?: boolean;
             };
         };
         createdAt: string;
@@ -1245,6 +1285,14 @@ export type GetApiInternalPoolsByPoolIdConfigVersionsByVersionResponses = {
                     ask?: 'off' | 'on-miss' | 'always';
                     host?: 'sandbox' | 'gateway' | 'node';
                 };
+                web?: {
+                    search?: {
+                        enabled?: boolean;
+                    };
+                    fetch?: {
+                        enabled?: boolean;
+                    };
+                };
             };
             agents: {
                 defaults?: {
@@ -1312,6 +1360,9 @@ export type GetApiInternalPoolsByPoolIdConfigVersionsByVersionResponses = {
                 nativeSkills?: 'auto' | 'off';
                 restart?: boolean;
                 ownerDisplay?: 'raw' | 'friendly';
+            };
+            cron?: {
+                enabled?: boolean;
             };
         };
         createdAt: string;

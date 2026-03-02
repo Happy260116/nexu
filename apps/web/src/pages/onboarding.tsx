@@ -1,25 +1,15 @@
+import { DiscordSetupView } from "@/components/channel-setup/discord-setup-view";
+import { SlackOAuthView } from "@/components/channel-setup/slack-oauth-view";
 import { identify, track } from "@/lib/tracking";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import "@/lib/api";
 import { client } from "@/lib/api";
 import { whatsappQrImageUrl, whatsappWaMeUrl } from "@/lib/whatsapp";
-import {
-  getApiV1Channels,
-  getApiV1ChannelsSlackOauthUrl,
-  getApiV1Me,
-  postApiV1ChannelsDiscordConnect,
-  postApiV1ChannelsSlackConnect,
-} from "../../lib/api/sdk.gen";
+import { getApiV1Channels, getApiV1Me } from "../../lib/api/sdk.gen";
 
 // ── Constants ──────────────────────────────────────────────
 
@@ -796,154 +786,6 @@ function ReferralStep({
 
 // ── Channel connect modal ──────────────────────────────────
 
-// ── Setup step definitions for onboarding channel connect ──
-
-interface SetupStep {
-  title: string;
-  bullets: string[];
-  copyable?: string;
-  hasInputs?: boolean;
-  link?: { label: string; url: string };
-}
-
-function renderBold(text: string) {
-  const parts = text.split(/(\*\*.+?\*\*)/g);
-  if (parts.length === 1) return text;
-  const result: ReactNode[] = [];
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i] as string;
-    if (part.startsWith("**") && part.endsWith("**")) {
-      result.push(
-        <strong key={i} className="font-semibold text-text-primary">
-          {part.slice(2, -2)}
-        </strong>,
-      );
-    } else {
-      result.push(<span key={i}>{part}</span>);
-    }
-  }
-  return result;
-}
-
-const SLACK_SETUP_STEPS: SetupStep[] = [
-  {
-    title: "Create Slack App",
-    link: {
-      label: "Open Slack API Dashboard",
-      url: "https://api.slack.com/apps",
-    },
-    bullets: [
-      'Click **"Create New App"**',
-      'Select **"From scratch"**',
-      "Set the App Name to **Nexu**",
-      "Choose the workspace to install it to",
-    ],
-  },
-  {
-    title: "Configure Bot Permissions",
-    bullets: [
-      'Go to your app \u2192 **"OAuth & Permissions"** tab',
-      'Scroll to **"Bot Token Scopes"**',
-      "**Add** these scopes:",
-      "\u2003\u00B7 chat:write \u2014 send messages",
-      "\u2003\u00B7 app_mentions:read \u2014 receive @mentions",
-      "\u2003\u00B7 channels:history \u2014 read channel messages",
-      "\u2003\u00B7 channels:read \u2014 list channels",
-      "\u2003\u00B7 groups:history \u2014 read private channel messages",
-      "\u2003\u00B7 groups:read \u2014 list private channels",
-      "\u2003\u00B7 im:history \u2014 read direct messages",
-      "\u2003\u00B7 im:read \u2014 read DM info",
-      "\u2003\u00B7 im:write \u2014 open direct messages",
-      "\u2003\u00B7 mpim:history \u2014 read group DMs",
-      "\u2003\u00B7 mpim:read \u2014 read group DM info",
-      "\u2003\u00B7 files:read \u2014 read uploaded files",
-      "\u2003\u00B7 users:read \u2014 resolve user info",
-    ],
-  },
-  {
-    title: "Install & Connect",
-    bullets: [
-      'Go to **"Basic Information"** \u2192 **"App Credentials"** \u2192 copy the **"Signing Secret"**',
-    ],
-    hasInputs: true,
-  },
-  {
-    title: "Configure Events & Test",
-    bullets: [
-      'Go to your app \u2192 **"Event Subscriptions"**',
-      'Toggle **"Enable Events"** on',
-      "Enter this Request URL:",
-    ],
-    copyable: "/api/slack/events",
-  },
-];
-
-// Extra bullets shown after the copyable URL in the last Slack step
-const SLACK_EVENTS_EXTRA = [
-  'Under **"Subscribe to bot events"**, add:',
-  "\u2003\u00B7 app_mention",
-  "\u2003\u00B7 message.channels",
-  'Click **"Save Changes"**',
-  "In any Slack channel, type **/invite @Nexu**",
-  'Send **"@Nexu hello"** to test',
-];
-
-const DISCORD_SETUP_STEPS: SetupStep[] = [
-  {
-    title: "Create Discord Application",
-    link: {
-      label: "Open Discord Developer Portal",
-      url: "https://discord.com/developers/applications",
-    },
-    bullets: [
-      'Click **"New Application"**',
-      "Set the App Name to **Nexu**",
-      "Save and go to the **Bot** page",
-    ],
-  },
-  {
-    title: "Configure Bot Permissions",
-    bullets: [
-      'Go to Application \u2192 **"Bot"**',
-      "**Enable** these Privileged Gateway Intents:",
-      "\u2003\u00B7 MESSAGE CONTENT INTENT",
-      "\u2003\u00B7 SERVER MEMBERS INTENT",
-    ],
-  },
-  { title: "Enter Credentials & Connect", hasInputs: true, bullets: [] },
-  {
-    title: "Invite Bot & Test",
-    bullets: [
-      "Click the button below to invite the bot to your server",
-      "Select the server and **authorize**",
-      'Send **"@Nexu hello"** in a channel to test',
-    ],
-  },
-];
-
-const SETUP_STEPS_MAP: Record<string, SetupStep[]> = {
-  slack: SLACK_SETUP_STEPS,
-  discord: DISCORD_SETUP_STEPS,
-};
-
-const CREDENTIAL_FIELDS: Record<
-  string,
-  { label1: string; placeholder1: string; label2: string; placeholder2: string }
-> = {
-  slack: {
-    label1: "Signing Secret",
-    placeholder1: "xxxxxxxxxxxxxxxxxxxxxxx",
-    label2: "Bot User OAuth Token",
-    placeholder2: "xoxb-xxxxxxxxxxxxx",
-  },
-  discord: {
-    label1: "Application ID",
-    placeholder1: "123456789012345678",
-    label2: "Bot Token",
-    placeholder2: "MTxx...",
-  },
-};
-
 function ChannelConnectModal({
   channelId,
   channelName,
@@ -951,6 +793,8 @@ function ChannelConnectModal({
   onClose,
   onConnected,
   onLinked,
+  initialManual,
+  oauthError,
 }: {
   channelId: string;
   channelName: string;
@@ -958,20 +802,11 @@ function ChannelConnectModal({
   onClose: () => void;
   onConnected: (channelId: string) => void;
   onLinked?: (channelId: string) => void;
+  initialManual?: boolean;
+  oauthError?: string;
 }) {
-  const steps = SETUP_STEPS_MAP[channelId];
-  const fields = CREDENTIAL_FIELDS[channelId];
-  const [stepIdx, setStepIdx] = useState(0);
-  const [field1, setField1] = useState("");
-  const [field2, setField2] = useState("");
-  const [connecting, setConnecting] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const connectingRef = useRef(false);
-  const [oauthLoading, setOauthLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   // WhatsApp QR connect
-  if (channelId === "whatsapp" || !steps || !fields) {
+  if (channelId === "whatsapp") {
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4"
@@ -1029,93 +864,20 @@ function ChannelConnectModal({
     );
   }
 
-  const step = steps[stepIdx];
-  if (!step) return null;
-
-  const handleSlackOAuth = async () => {
-    setOauthLoading(true);
-    try {
-      const { data, error } = await getApiV1ChannelsSlackOauthUrl({
-        query: { returnTo: "/onboarding" },
-      });
-      if (error) {
-        toast.error("Failed to get Slack OAuth URL");
-        return;
-      }
-      if (data?.url) window.location.href = data.url;
-    } catch {
-      toast.error("Failed to start Slack connection");
-    } finally {
-      setOauthLoading(false);
-    }
+  const handleChannelConnected = () => {
+    onLinked?.(channelId);
+    onConnected(channelId);
   };
 
-  const handleConnect = async () => {
-    if (!field1.trim() || !field2.trim() || connected || connectingRef.current)
-      return;
-    connectingRef.current = true;
-    setConnecting(true);
-    try {
-      if (channelId === "slack") {
-        const { error } = await postApiV1ChannelsSlackConnect({
-          body: { botToken: field2, signingSecret: field1 },
-        });
-        if (error) throw new Error("Connection failed");
-      } else if (channelId === "discord") {
-        const { error } = await postApiV1ChannelsDiscordConnect({
-          body: { botToken: field2, appId: field1 },
-        });
-        if (error) throw new Error("Connection failed");
-      }
-      toast.success(`${channelName} connected!`);
-      console.log("[connect] success, advancing step", {
-        stepIdx,
-        stepsLen: steps.length,
-      });
-      try {
-        track("channel_ready", { channel: channelId });
-        identify({ primary_platform: channelId, channels_connected: 1 });
-      } catch (e) {
-        console.warn("[connect] tracking error (ignored):", e);
-      }
-      // Mark as linked (green) immediately, but keep modal open for remaining steps
-      setConnected(true);
-      onLinked?.(channelId);
-      console.log("[connect] onLinked called, setting stepIdx to", stepIdx + 1);
-      // Advance to next step (events/test) if there is one, otherwise close
-      if (stepIdx < steps.length - 1) {
-        setStepIdx(stepIdx + 1);
-      } else {
-        onConnected(channelId);
-      }
-      console.log("[connect] done");
-    } catch (err) {
-      console.error("[connect] error:", err);
-      toast.error(`Failed to connect ${channelName}`);
-    } finally {
-      connectingRef.current = false;
-      setConnecting(false);
-    }
-  };
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const isLast = stepIdx === steps.length - 1;
-
+  // Slack / Discord: use shared setup views in modal shell
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4"
-      onClick={() => !connecting && !oauthLoading && onClose()}
-      onKeyDown={(e) =>
-        e.key === "Escape" && !connecting && !oauthLoading && onClose()
-      }
+      onClick={onClose}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <div
-        className="w-full max-w-[560px] bg-surface-1 rounded-2xl border border-border shadow-xl overflow-hidden"
+        className="w-full max-w-[640px] bg-surface-1 rounded-2xl border border-border shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -1133,302 +895,43 @@ function ChannelConnectModal({
             <h3 className="text-[14px] font-semibold text-text-primary">
               Connect {channelName}
             </h3>
-            <p className="text-[11px] text-text-tertiary">
-              Step {stepIdx + 1} of {steps.length}
-            </p>
           </div>
-          {channelId === "slack" && (
-            <button
-              type="button"
-              onClick={handleSlackOAuth}
-              disabled={oauthLoading}
-              className="px-3 py-1.5 rounded-lg text-[11px] font-medium text-white transition-colors cursor-pointer disabled:opacity-60 shrink-0"
-              style={{ backgroundColor: channelColor }}
-            >
-              {oauthLoading ? "Redirecting..." : "OAuth (quick setup)"}
-            </button>
-          )}
-        </div>
-
-        {/* Step progress */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="flex gap-1">
-            {steps.map((step, i) => (
-              <div
-                key={step.title}
-                className="flex-1 h-[3px] rounded-full overflow-hidden bg-border-subtle"
-              >
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: i <= stepIdx ? "100%" : "0%",
-                    backgroundColor: channelColor,
-                    opacity: i === stepIdx ? 0.5 : 1,
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step content */}
-        <div className="px-6 py-4 max-h-[420px] overflow-y-auto">
-          <h4 className="text-[14px] font-semibold text-text-primary mb-1">
-            {step.title}
-          </h4>
-
-          {step.link && (
-            <a
-              href={step.link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium mb-3 transition-colors"
-              style={{ color: channelColor }}
-            >
-              <svg
-                aria-hidden="true"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-              {step.link.label}
-            </a>
-          )}
-
-          {step.bullets.length > 0 && (
-            <div className="space-y-1.5 mb-4">
-              {step.bullets.map((b) => (
-                <div
-                  key={b}
-                  className="text-[12px] leading-relaxed text-text-secondary"
-                >
-                  {b.startsWith("\u2003") ? (
-                    <span className="ml-3 text-text-muted font-mono text-[11px]">
-                      {b.trim()}
-                    </span>
-                  ) : (
-                    <span className="flex gap-2 items-start">
-                      <span
-                        className="mt-1.5 w-1 h-1 rounded-full shrink-0"
-                        style={{ backgroundColor: channelColor, opacity: 0.5 }}
-                      />
-                      <span className="flex-1 min-w-0">{renderBold(b)}</span>
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {channelId === "discord" &&
-            step.title.includes("Invite") &&
-            field1.trim() && (
-              <a
-                href={`https://discord.com/oauth2/authorize?client_id=${field1}&scope=bot&permissions=68608`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-medium text-white rounded-lg mb-4 transition-colors"
-                style={{ backgroundColor: channelColor }}
-              >
-                <svg
-                  aria-hidden="true"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-                Add Bot to Server
-              </a>
-            )}
-
-          {step.copyable &&
-            (() => {
-              const copyable = step.copyable as string;
-              const fullUrl = copyable.startsWith("/")
-                ? `${window.location.origin}${copyable}`
-                : copyable;
-              return (
-                <>
-                  <div className="flex gap-2 items-center p-2.5 rounded-lg border bg-surface-0 border-border font-mono text-[11px] mb-3">
-                    <code className="flex-1 break-all text-text-secondary">
-                      {fullUrl}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(fullUrl)}
-                      className="p-1 rounded transition-colors text-text-muted hover:text-text-primary shrink-0 cursor-pointer"
-                    >
-                      {copied ? (
-                        <span className="text-[10px] text-success">
-                          {"\u2713"}
-                        </span>
-                      ) : (
-                        <svg
-                          aria-hidden="true"
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect x="9" y="9" width="13" height="13" rx="2" />
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  {channelId === "slack" && stepIdx === steps.length - 1 && (
-                    <div className="space-y-1.5 mb-4">
-                      {SLACK_EVENTS_EXTRA.map((b) => (
-                        <div
-                          key={b}
-                          className="text-[12px] leading-relaxed text-text-secondary"
-                        >
-                          {b.startsWith("\u2003") ? (
-                            <span className="ml-3 text-text-muted font-mono text-[11px]">
-                              {b.trim()}
-                            </span>
-                          ) : (
-                            <span className="flex gap-2 items-start">
-                              <span
-                                className="mt-1.5 w-1 h-1 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor: channelColor,
-                                  opacity: 0.5,
-                                }}
-                              />
-                              {renderBold(b)}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-
-          {step.hasInputs && fields && (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="channel-field1"
-                  className="block text-[11px] font-medium text-text-muted"
-                >
-                  {fields.label1}
-                </label>
-                <input
-                  id="channel-field1"
-                  type="text"
-                  value={field1}
-                  onChange={(e) => setField1(e.target.value)}
-                  placeholder={fields.placeholder1}
-                  className="w-full px-3.5 py-2.5 bg-surface-0 border border-border rounded-lg text-text-primary placeholder:text-text-muted text-[13px] font-mono focus:outline-none focus:border-border-hover transition-colors"
-                />
-              </div>
-              {channelId === "slack" && (
-                <p className="text-[12px] leading-relaxed text-text-secondary flex gap-2 items-start">
-                  <span
-                    className="mt-1.5 w-1 h-1 rounded-full shrink-0"
-                    style={{ backgroundColor: channelColor, opacity: 0.5 }}
-                  />
-                  <span className="flex-1 min-w-0">
-                    Go to{" "}
-                    <strong className="font-semibold text-text-primary">
-                      &ldquo;Install App&rdquo;
-                    </strong>{" "}
-                    &rarr; click{" "}
-                    <strong className="font-semibold text-text-primary">
-                      &ldquo;Install to Workspace&rdquo;
-                    </strong>
-                    , then copy the{" "}
-                    <strong className="font-semibold text-text-primary">
-                      &ldquo;Bot User OAuth Token&rdquo;
-                    </strong>{" "}
-                    (starts with xoxb-)
-                  </span>
-                </p>
-              )}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="channel-field2"
-                  className="block text-[11px] font-medium text-text-muted"
-                >
-                  {fields.label2}
-                </label>
-                <input
-                  id="channel-field2"
-                  type="password"
-                  value={field2}
-                  onChange={(e) => setField2(e.target.value)}
-                  placeholder={fields.placeholder2}
-                  className="w-full px-3.5 py-2.5 bg-surface-0 border border-border rounded-lg text-text-primary placeholder:text-text-muted text-[13px] font-mono focus:outline-none focus:border-border-hover transition-colors"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-between items-center px-6 py-4 border-t border-border">
           <button
             type="button"
-            onClick={() => (stepIdx > 0 ? setStepIdx(stepIdx - 1) : onClose())}
-            className="px-3 py-1.5 text-[12px] text-text-tertiary hover:text-text-primary transition-colors cursor-pointer"
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-3 transition-all cursor-pointer shrink-0"
           >
-            {stepIdx > 0 ? "\u2190 Previous" : "Cancel"}
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
-          {step.hasInputs ? (
-            <button
-              type="button"
-              onClick={handleConnect}
-              disabled={
-                !field1.trim() || !field2.trim() || connecting || connected
-              }
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-medium rounded-lg text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              style={{ backgroundColor: channelColor }}
-            >
-              {connecting ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Connecting...
-                </>
-              ) : (
-                "Connect"
-              )}
-            </button>
-          ) : isLast ? (
-            <button
-              type="button"
-              onClick={() => onConnected(channelId)}
-              className="px-4 py-1.5 text-[12px] font-medium rounded-lg text-white cursor-pointer"
-              style={{ backgroundColor: channelColor }}
-            >
-              Done
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setStepIdx(stepIdx + 1)}
-              className="px-4 py-1.5 text-[12px] font-medium rounded-lg text-white cursor-pointer"
-              style={{ backgroundColor: channelColor }}
-            >
-              Next &rarr;
-            </button>
-          )}
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+          {channelId === "slack" ? (
+            <SlackOAuthView
+              onConnected={handleChannelConnected}
+              variant="modal"
+              initialManual={initialManual}
+              oauthReturnTo="/onboarding?openModal=slack"
+              oauthError={oauthError}
+            />
+          ) : channelId === "discord" ? (
+            <DiscordSetupView
+              onConnected={handleChannelConnected}
+              variant="modal"
+            />
+          ) : null}
         </div>
       </div>
     </div>
@@ -1450,6 +953,8 @@ function ChannelsStep({
   const [votes, setVotes] = useState<string[]>(data.channelVotes || []);
   const [connected, setConnected] = useState<string[]>([]);
   const [modal, setModal] = useState<string | null>(null);
+  const [slackManualFallback, setSlackManualFallback] = useState(false);
+  const [slackErrorMsg, setSlackErrorMsg] = useState<string | undefined>();
 
   // Load already-connected channels from backend on mount
   useEffect(() => {
@@ -1465,14 +970,45 @@ function ChannelsStep({
     });
   }, []);
 
-  // Detect Slack OAuth completion via query param
+  // Detect Slack OAuth completion or auto-open modal via query params
   useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    let changed = false;
+
+    // OAuth success
     if (searchParams.get("slackConnected") === "true") {
       setConnected((prev) =>
         prev.includes("slack") ? prev : [...prev, "slack"],
       );
-      const next = new URLSearchParams(searchParams);
       next.delete("slackConnected");
+      changed = true;
+    }
+
+    // Auto-open modal (after OAuth redirect back to onboarding)
+    const openModal = searchParams.get("openModal");
+    if (openModal) {
+      setModal(openModal);
+      next.delete("openModal");
+      changed = true;
+    }
+
+    // OAuth failure — open modal in manual mode
+    if (searchParams.get("slackManual") === "true") {
+      setModal("slack");
+      setSlackManualFallback(true);
+      next.delete("slackManual");
+      changed = true;
+    }
+
+    // Capture error message
+    const slackError = searchParams.get("slackError");
+    if (slackError) {
+      setSlackErrorMsg(slackError);
+      next.delete("slackError");
+      changed = true;
+    }
+
+    if (changed) {
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -1591,11 +1127,17 @@ function ChannelsStep({
           channelId={modal}
           channelName={modalChannel.name}
           channelColor={modalChannel.color}
-          onClose={() => setModal(null)}
+          onClose={() => {
+            setModal(null);
+            setSlackManualFallback(false);
+            setSlackErrorMsg(undefined);
+          }}
           onConnected={handleConnected}
           onLinked={(id) =>
             setConnected((prev) => (prev.includes(id) ? prev : [...prev, id]))
           }
+          initialManual={modal === "slack" && slackManualFallback}
+          oauthError={modal === "slack" ? slackErrorMsg : undefined}
         />
       )}
     </div>

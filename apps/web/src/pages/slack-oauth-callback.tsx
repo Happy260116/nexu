@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,8 +21,14 @@ export function SlackOAuthCallbackPage() {
   const teamName = searchParams.get("teamName");
   const returnTo = searchParams.get("returnTo");
 
+  // Clear OAuth pending flag on both success and error paths
+  useEffect(() => {
+    sessionStorage.removeItem("slack_oauth_pending");
+  }, []);
+
   useEffect(() => {
     if (success) {
+      // Success path: show brief confirmation, then redirect
       queryClient.invalidateQueries({ queryKey: ["channels"] });
       toast.success(`Slack workspace "${teamName}" connected!`);
 
@@ -36,8 +41,25 @@ export function SlackOAuthCallbackPage() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [success, teamName, queryClient, navigate, returnTo]);
 
+    // Error path: immediately redirect back with error info in query params
+    const errorMsg = error ?? "Authorization was not completed";
+    const encodedError = encodeURIComponent(errorMsg);
+
+    if (returnTo === "/onboarding") {
+      navigate(
+        `/onboarding?openModal=slack&slackManual=true&slackError=${encodedError}`,
+        { replace: true },
+      );
+    } else {
+      navigate(
+        `/workspace/channels?slackManual=true&slackError=${encodedError}`,
+        { replace: true },
+      );
+    }
+  }, [success, error, teamName, queryClient, navigate, returnTo]);
+
+  // Only the success path renders UI; error path navigates away immediately
   if (success) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -51,9 +73,7 @@ export function SlackOAuthCallbackPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="mb-4 text-sm text-muted-foreground">
-              Redirecting to channels...
-            </p>
+            <p className="mb-4 text-sm text-muted-foreground">Redirecting...</p>
             <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
           </CardContent>
         </Card>
@@ -61,25 +81,10 @@ export function SlackOAuthCallbackPage() {
     );
   }
 
+  // Brief loading state while navigating away
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <XCircle className="mx-auto h-12 w-12 text-destructive" />
-          <CardTitle className="mt-4">Connection Failed</CardTitle>
-          <CardDescription>
-            {error ?? "An unknown error occurred while connecting Slack."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center">
-          <Button
-            type="button"
-            onClick={() => navigate("/workspace/channels", { replace: true })}
-          >
-            Back to Channels
-          </Button>
-        </CardContent>
-      </Card>
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   );
 }

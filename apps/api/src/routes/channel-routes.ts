@@ -128,6 +128,22 @@ const SLACK_BOT_SCOPES = [
 // OpenAPI route definitions (user-scoped, no botId param)
 // ---------------------------------------------------------------------------
 
+const slackRedirectUriRoute = createRoute({
+  method: "get",
+  path: "/api/v1/channels/slack/redirect-uri",
+  tags: ["Channels"],
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: z.object({ redirectUri: z.string() }),
+        },
+      },
+      description: "The OAuth redirect URI configured on this server",
+    },
+  },
+});
+
 const slackOAuthUrlRoute = createRoute({
   method: "get",
   path: "/api/v1/channels/slack/oauth-url",
@@ -248,6 +264,11 @@ const channelStatusRoute = createRoute({
 // ---------------------------------------------------------------------------
 
 export function registerChannelRoutes(app: OpenAPIHono<AppBindings>) {
+  // -- Slack redirect URI (lightweight, no state creation) --
+  app.openapi(slackRedirectUriRoute, async (c) => {
+    return c.json({ redirectUri: getSlackRedirectUri() }, 200);
+  });
+
   // -- Slack OAuth URL generation (authenticated, no botId needed) --
   app.openapi(slackOAuthUrlRoute, async (c) => {
     const userId = c.get("userId");
@@ -279,7 +300,10 @@ export function registerChannelRoutes(app: OpenAPIHono<AppBindings>) {
     url.searchParams.set("redirect_uri", getSlackRedirectUri());
     url.searchParams.set("state", nonce);
 
-    return c.json({ url: url.toString() }, 200);
+    return c.json(
+      { url: url.toString(), redirectUri: getSlackRedirectUri() },
+      200,
+    );
   });
 
   // -- Manual Slack connect (authenticated) --

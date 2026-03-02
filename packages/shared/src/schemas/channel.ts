@@ -42,6 +42,7 @@ export const channelListResponseSchema = z.object({
 
 export const slackOAuthUrlResponseSchema = z.object({
   url: z.string(),
+  redirectUri: z.string(),
 });
 
 export type ChannelType = z.infer<typeof channelTypeSchema>;

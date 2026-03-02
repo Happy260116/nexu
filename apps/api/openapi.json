@@ -1511,6 +1511,33 @@
         }
       }
     },
+    "/api/v1/channels/slack/redirect-uri": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "responses": {
+          "200": {
+            "description": "The OAuth redirect URI configured on this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redirectUri": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "redirectUri"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/channels/slack/oauth-url": {
       "get": {
         "tags": [
@@ -2369,6 +2396,27 @@
                               ]
                             }
                           }
+                        },
+                        "web": {
+                          "type": "object",
+                          "properties": {
+                            "search": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {
+                                  "type": "boolean"
+                                }
+                              }
+                            },
+                            "fetch": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          }
                         }
                       }
                     },
@@ -2676,6 +2724,14 @@
                             "raw",
                             "friendly"
                           ]
+                        }
+                      }
+                    },
+                    "cron": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
                         }
                       }
                     }
@@ -3106,6 +3162,27 @@
                                   ]
                                 }
                               }
+                            },
+                            "web": {
+                              "type": "object",
+                              "properties": {
+                                "search": {
+                                  "type": "object",
+                                  "properties": {
+                                    "enabled": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                },
+                                "fetch": {
+                                  "type": "object",
+                                  "properties": {
+                                    "enabled": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                }
+                              }
                             }
                           }
                         },
@@ -3413,6 +3490,14 @@
                                 "raw",
                                 "friendly"
                               ]
+                            }
+                          }
+                        },
+                        "cron": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean"
                             }
                           }
                         }
@@ -3715,6 +3800,27 @@
                                   ]
                                 }
                               }
+                            },
+                            "web": {
+                              "type": "object",
+                              "properties": {
+                                "search": {
+                                  "type": "object",
+                                  "properties": {
+                                    "enabled": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                },
+                                "fetch": {
+                                  "type": "object",
+                                  "properties": {
+                                    "enabled": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                }
+                              }
                             }
                           }
                         },
@@ -4022,6 +4128,14 @@
                                 "raw",
                                 "friendly"
                               ]
+                            }
+                          }
+                        },
+                        "cron": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean"
                             }
                           }
                         }
