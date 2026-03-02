@@ -104,7 +104,7 @@ export function registerSlackEvents(app: OpenAPIHono<AppBindings>) {
         });
       } catch {
         logger.warn({ message: "slack_events_invalid_json_body" });
-        return c.json({ error: "Invalid JSON" }, 400);
+        return c.json({ message: "Invalid JSON" }, 400);
       }
 
       // Handle url_verification challenge (Slack endpoint validation)
@@ -115,12 +115,12 @@ export function registerSlackEvents(app: OpenAPIHono<AppBindings>) {
       // Extract team_id and api_app_id from event payload
       const teamId = payload.team_id as string | undefined;
       if (!teamId) {
-        return c.json({ error: "Missing team_id" }, 400);
+        return c.json({ message: "Missing team_id" }, 400);
       }
 
       const apiAppId = payload.api_app_id as string | undefined;
       if (!apiAppId) {
-        return c.json({ error: "Missing api_app_id" }, 400);
+        return c.json({ message: "Missing api_app_id" }, 400);
       }
 
       // Look up webhook route using composite key (teamId:appId)
@@ -140,7 +140,7 @@ export function registerSlackEvents(app: OpenAPIHono<AppBindings>) {
           message: "slack_events_webhook_route_missing",
           composite_key: compositeKey,
         });
-        return c.json({ error: "Unknown workspace" }, 404);
+        return c.json({ message: "Unknown workspace" }, 404);
       }
 
       // Retrieve signing secret from credentials
@@ -159,7 +159,7 @@ export function registerSlackEvents(app: OpenAPIHono<AppBindings>) {
           message: "slack_events_signing_secret_missing",
           bot_channel_id: route.botChannelId,
         });
-        return c.json({ error: "Channel misconfigured" }, 500);
+        return c.json({ message: "Channel misconfigured" }, 500);
       }
 
       const signingSecret = decrypt(signingSecretRow.encryptedValue);
@@ -170,7 +170,7 @@ export function registerSlackEvents(app: OpenAPIHono<AppBindings>) {
 
       if (!timestamp || !signature) {
         logger.warn({ message: "slack_events_signature_headers_missing" });
-        return c.json({ error: "Missing Slack signature headers" }, 401);
+        return c.json({ message: "Missing Slack signature headers" }, 401);
       }
 
       if (!verifySlackSignature(signingSecret, timestamp, rawBody, signature)) {
@@ -178,7 +178,7 @@ export function registerSlackEvents(app: OpenAPIHono<AppBindings>) {
           message: "slack_events_signature_mismatch",
           timestamp,
         });
-        return c.json({ error: "Invalid signature" }, 401);
+        return c.json({ message: "Invalid signature" }, 401);
       }
 
       // Find the gateway pod + botId

@@ -111,17 +111,11 @@ function buildResponseBody(
   baseError: BaseError,
   requestId: string | undefined,
 ): {
-  error: {
-    type: string;
-    message: string;
-  };
+  message: string;
   requestId?: string;
 } {
   return {
-    error: {
-      type: baseError.type,
-      message: baseError.message,
-    },
+    message: baseError.message,
     ...(requestId ? { requestId } : {}),
   };
 }
@@ -135,10 +129,7 @@ export function resolveErrorHandling(
   level: "error" | "warn" | "info";
   logBody: { error: Record<string, unknown> };
   responseBody: {
-    error: {
-      type: string;
-      message: string;
-    };
+    message: string;
     requestId?: string;
   };
 } {
