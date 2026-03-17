@@ -1,4 +1,12 @@
-import { mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { resolve } from "node:path";
 import {
   type DesktopRuntimeConfig,
@@ -22,6 +30,44 @@ function getBooleanEnv(name: string, fallback: boolean): boolean {
   return value === "1" || value.toLowerCase() === "true";
 }
 
+function ensurePackagedOpenclawSidecar(
+  runtimeSidecarBaseRoot: string,
+  runtimeRoot: string,
+): string {
+  const packagedSidecarRoot = resolve(runtimeSidecarBaseRoot, "openclaw");
+  const archivePath = resolve(packagedSidecarRoot, "payload.tar.gz");
+
+  if (!existsSync(archivePath)) {
+    return packagedSidecarRoot;
+  }
+
+  const extractedSidecarRoot = ensureDir(
+    resolve(runtimeRoot, "openclaw-sidecar"),
+  );
+  const stampPath = resolve(extractedSidecarRoot, ".archive-stamp");
+  const archiveStat = statSync(archivePath);
+  const archiveStamp = `${archiveStat.size}:${archiveStat.mtimeMs}`;
+  const extractedOpenclawEntry = resolve(
+    extractedSidecarRoot,
+    "node_modules/openclaw/openclaw.mjs",
+  );
+
+  if (
+    existsSync(stampPath) &&
+    existsSync(extractedOpenclawEntry) &&
+    readFileSync(stampPath, "utf8") === archiveStamp
+  ) {
+    return extractedSidecarRoot;
+  }
+
+  rmSync(extractedSidecarRoot, { recursive: true, force: true });
+  mkdirSync(extractedSidecarRoot, { recursive: true });
+  execFileSync("tar", ["-xzf", archivePath, "-C", extractedSidecarRoot]);
+  writeFileSync(stampPath, archiveStamp);
+
+  return extractedSidecarRoot;
+}
+
 export function createRuntimeUnitManifests(
   electronRoot: string,
   userDataPath: string,
@@ -32,13 +78,10 @@ export function createRuntimeUnitManifests(
   const runtimeSidecarBaseRoot = isPackaged
     ? resolve(electronRoot, "runtime")
     : resolve(repoRoot, ".tmp/sidecars");
-  const openclawSidecarRoot = resolve(runtimeSidecarBaseRoot, "openclaw");
   const runtimeConfig: DesktopRuntimeConfig = getDesktopRuntimeConfig(
     process.env,
     {
-      openclawBinPath: isPackaged
-        ? resolve(openclawSidecarRoot, "bin/openclaw")
-        : resolve(repoRoot, "openclaw-wrapper"),
+      openclawBinPath: resolve(runtimeSidecarBaseRoot, "openclaw/bin/openclaw"),
     },
   );
   const runtimeRoot = ensureDir(resolve(userDataPath, "runtime"));
@@ -51,6 +94,9 @@ export function createRuntimeUnitManifests(
   ensureDir(resolve(openclawStateDir, "skills"));
   ensureDir(resolve(openclawStateDir, "plugin-docs"));
   ensureDir(resolve(openclawStateDir, "agents"));
+  const openclawSidecarRoot = isPackaged
+    ? ensurePackagedOpenclawSidecar(runtimeSidecarBaseRoot, runtimeRoot)
+    : resolve(runtimeSidecarBaseRoot, "openclaw");
   const openclawPackageRoot = resolve(
     openclawSidecarRoot,
     "node_modules/openclaw",
@@ -168,6 +214,7 @@ export function createRuntimeUnitManifests(
         OPENCLAW_CONFIG_PATH: resolve(openclawConfigDir, "openclaw.json"),
         OPENCLAW_SKILLS_DIR: resolve(openclawStateDir, "skills"),
         OPENCLAW_BIN: runtimeConfig.paths.openclawBin,
+        OPENCLAW_ELECTRON_EXECUTABLE: process.execPath,
         OPENCLAW_EXTENSIONS_DIR: resolve(openclawPackageRoot, "extensions"),
         TMPDIR: openclawTempDir,
         RUNTIME_MANAGE_OPENCLAW_PROCESS: "true",
