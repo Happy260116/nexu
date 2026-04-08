@@ -327,6 +327,8 @@ const en = {
   "rewards.downloadFailed": "Failed to download share card",
   "rewards.githubSessionFailed":
     "Failed to start GitHub star verification. Please try again.",
+  "rewards.githubVerifying":
+    "Verifying your GitHub star. This may take a few seconds...",
   "rewards.proofUrlLabel": "Paste your share URL",
   "rewards.proofUrlPlaceholder":
     "Paste the public link you posted on that platform",
